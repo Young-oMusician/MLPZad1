@@ -57,9 +57,15 @@ public class Layer {
         }
     }
 
-    public void improveWeights(double alpha){
+    public void improveWeights(double alpha, double beta){
         for(int i = 0; i < neurals.size(); i++){
-            neurals.get(i).improveWeights(alpha);
+            neurals.get(i).improveWeights(alpha, beta);
+        }
+    }
+
+    public void resetWeights(){
+        for(int i = 0; i < neurals.size(); i++){
+            neurals.get(i).resetWeights();
         }
     }
     

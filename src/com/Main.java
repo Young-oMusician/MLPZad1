@@ -1,8 +1,6 @@
 package com;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Scanner;
@@ -41,17 +39,26 @@ public class Main {
 
     final static double EPSILON = 0.0001;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException{
 
-        Vector<Vector<Double>> inputs = readFile("transformation.txt");
+        Vector<Vector<Double>> inputs = readFile("../transformation.txt");
         Vector<Vector<Double>> outputs = ((Vector<Vector<Double>>) inputs.clone());
-        int[] top = {3,4};
-        Network net = new Network(top, 4,true, 0.1);
+        int[] top = {2,4};
+        Network net = new Network(top, 4,false, 0.01,0);
         Integer[] o = {0,1,2,3};
+        String data;
         Vector<Integer> order = new Vector<Integer>(Arrays.asList(o));
+        File plik = new File("../trans_1_neuron_zb.txt");
+        int iterator = 0;
+        try{
+            plik.createNewFile();
+        }catch(IOException ex){
+            System.out.println(ex.getMessage());
+        }
+        FileWriter writer = new FileWriter(plik);
         double error = 0;
-        do{
-            for(int k = 0 ; k < 2; k++) {
+            for(int k = 0; k < 120000; k++){
+                iterator++;
                 Collections.shuffle(order);
                 for (int i = 0; i < order.size(); i++) {
                     net.loadData(inputs.get(order.get(i)), outputs.get(order.get(i)));
@@ -62,19 +69,32 @@ public class Main {
                     net.loadData(inputs.get(order.get(i)), outputs.get(order.get(i)));
                     net.feed();
                     error += net.getError();
+                    error /= 4;
                 }
-                error /= order.size();
-            }
-            System.out.println(net.getIterator());
-            if(error < EPSILON){
-                break;
+                if(k % 200 == 0){
+//                    System.out.println(iterator);
+//                    break;
+                    data = new String(k + " " + error + "\n");
+                    try{
+                        writer.write(data);
+
+                    }catch(IOException ex){
+                        System.out.println(ex.getMessage());
+                    }
+                }
             }
 
-        }while(true);
+            writer.close();
 
-        for(int i = 0; i < order.size(); i++){
-            System.out.println("Network Output: "+ net.getOutputs().get(i) + "    Training: " + net.getTrainingOutputs().get(i));
-        }
-        System.out.println("Error " + error);
+            Collections.shuffle(order);
+            for(int j = 0; j < order.size(); j++) {
+
+                net.loadData(inputs.get(order.get(j)), outputs.get(order.get(j)));
+                net.feed();
+                for (int i = 0; i < order.size(); i++) {
+                    System.out.println("Network Output: " + net.getOutputs().get(i) + "    Training: " + net.getTrainingOutputs().get(i));
+                }
+                System.out.println("Error " + error);
+            }
     }
 }

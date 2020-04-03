@@ -8,7 +8,9 @@ public class Neural {
     private double output;
     private double delta;
     private Vector<Double> weights;
+    private Vector<Double> oldWeights;
     private double bias;
+    private double oldBias;
     private boolean isBias;
 
     public Neural(int in,boolean isBias){
@@ -21,6 +23,7 @@ public class Neural {
         for(int i = 0; i < weights.size(); i++){
             weights.set(i,Utils.randomWeight());
         }
+        oldWeights = ((Vector<Double>) weights.clone());
     }
 
     public double sum(){
@@ -43,12 +46,29 @@ public class Neural {
         delta = nextLayerDeltaSupply * Utils.sigmoidDerivative(sum());
     }
 
-    public void improveWeights(double alpha){
+    public void improveWeights(double alpha, double beta){
+        double momentum;
         if(isBias){
-            bias -= delta * 1;
+            oldBias = bias;
+            momentum = oldBias;
+            bias -= (alpha * delta * 1);
+            momentum = (bias - momentum) * beta;
+            bias += momentum;
+
         }
         for(int i = 0; i < weights.size(); i++){
+            momentum = oldWeights.get(i);
+            oldWeights.set(i,weights.get(i));
             weights.set(i,weights.get(i) - (alpha * delta * inputs.get(i)));
+            momentum = (weights.get(i) - momentum) * beta;
+            weights.set(i,weights.get(i) + momentum);
+        }
+    }
+
+    public void resetWeights(){
+        weights = ((Vector<Double>) oldWeights.clone());
+        if (isBias) {
+            bias = oldBias;
         }
     }
 
